@@ -39,6 +39,7 @@ public class Wallet {
     }
 
     public BigDecimal getBalance() {
+
         return balance;
     }
 
