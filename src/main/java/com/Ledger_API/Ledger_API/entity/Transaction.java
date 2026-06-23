@@ -1,6 +1,8 @@
 package com.Ledger_API.Ledger_API.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,10 +14,13 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long tid;
 
+    @NotNull
     private Long senderId;
 
+    @NotNull
     private Long receiverId;
 
+    @Positive
     private BigDecimal transferAmount;
 
     private LocalDateTime transactionTime;

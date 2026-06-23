@@ -2,6 +2,8 @@ package com.Ledger_API.Ledger_API.service;
 
 import com.Ledger_API.Ledger_API.entity.Transaction;
 import com.Ledger_API.Ledger_API.entity.TransactionStatus;
+import com.Ledger_API.Ledger_API.exceptions.InvalidTransferException;
+import com.Ledger_API.Ledger_API.exceptions.WalletNotFoundException;
 import com.Ledger_API.Ledger_API.repository.TransactionRepository;
 import com.Ledger_API.Ledger_API.repository.WalletRepository;
 import org.springframework.stereotype.Service;
@@ -38,11 +40,12 @@ public class TransferService {
         //check sender != recvr
         if(sender==receiver || sender==null || receiver==null){
             //How to print an error in ths case
-            return null;
+            throw new WalletNotFoundException("Sender or receiver wallet not found");
+
         }
 
         if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            return null;
+            throw new InvalidTransferException("Transfer amount must be greater than 0.00");
         }
 
         //Transfer money
@@ -52,7 +55,7 @@ public class TransferService {
         //I don't know if I did this right
         if(senderCB.compareTo(transferAmount) < 0 ){
             //insufficient funds message should be alerted
-            return null;
+            throw new InvalidTransferException("Insufficient funds");
         }
 
         //Update balance

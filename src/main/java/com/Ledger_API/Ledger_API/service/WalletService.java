@@ -1,6 +1,7 @@
 package com.Ledger_API.Ledger_API.service;
 
 import com.Ledger_API.Ledger_API.entity.Wallet;
+import com.Ledger_API.Ledger_API.exceptions.WalletNotFoundException;
 import com.Ledger_API.Ledger_API.repository.WalletRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +24,15 @@ public class WalletService {
     }
 
     public Wallet getWalletById(Long id){
-        return walletRepository.findById(id).orElse(null) ;
+        return walletRepository.findById(id).orElseThrow(()->new WalletNotFoundException("Wallet not found")) ;
     }
 
     public BigDecimal getWalletBalance(Long id){
-        return walletRepository.findById(id).orElse(null).getBalance() ;
+        Wallet wallet = walletRepository.findById(id).orElse(null);
+        if(wallet == null){
+            throw new WalletNotFoundException("Wallet not found");
+        }
+
+        return wallet.getBalance();
     }
 }
