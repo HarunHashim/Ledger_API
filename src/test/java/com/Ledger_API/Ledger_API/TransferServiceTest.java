@@ -60,11 +60,6 @@ public class TransferServiceTest {
         Wallet sender = walletRepository.save(new Wallet("harun", new BigDecimal("50")));
         Wallet receiver = walletRepository.save(new Wallet("alex", new BigDecimal("200")));
 
-        Transaction transaction = transferService.transferMoney(
-                sender.getId(),
-                receiver.getId(),
-                new BigDecimal("100")
-        );
 
 //        Exception should be thrown in place of having a
        assertThrows(InvalidTransferException.class, ()-> transferService.transferMoney(
