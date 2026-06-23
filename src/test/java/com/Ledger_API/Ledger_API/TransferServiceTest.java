@@ -67,4 +67,20 @@ public class TransferServiceTest {
                receiver.getId(),
                new BigDecimal("100")));
     }
+
+    @Test
+    @DisplayName("Test 3: Transfer fails when sender and receiver are the same")
+    void transferFailsWhenSenderAndReceiverAreSame() {
+
+        Wallet sender = walletRepository.save(
+                new Wallet("harun", new BigDecimal("500"))
+        );
+
+        assertThrows(InvalidTransferException.class, () ->
+                transferService.transferMoney(
+                        sender.getId(),
+                        sender.getId(),
+                        new BigDecimal("100")
+                ));
+    }
 }
