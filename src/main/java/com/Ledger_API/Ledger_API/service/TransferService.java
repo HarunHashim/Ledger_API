@@ -2,6 +2,7 @@ package com.Ledger_API.Ledger_API.service;
 
 import com.Ledger_API.Ledger_API.entity.Transaction;
 import com.Ledger_API.Ledger_API.entity.TransactionStatus;
+import com.Ledger_API.Ledger_API.entity.TransactionType;
 import com.Ledger_API.Ledger_API.exceptions.InvalidTransferException;
 import com.Ledger_API.Ledger_API.exceptions.WalletNotFoundException;
 import com.Ledger_API.Ledger_API.repository.TransactionRepository;
@@ -38,10 +39,14 @@ public class TransferService {
         Wallet receiver = walletRepository.findById(receiverId).orElse(null);
 
         //check sender != recvr
-        if(sender==receiver || sender==null || receiver==null){
+        if( sender==null || receiver==null){
             //How to print an error in ths case
             throw new WalletNotFoundException("Sender or receiver wallet not found");
 
+        }
+
+        if(sender==receiver){
+            throw new InvalidTransferException("Sender and receiver cannot be the same");
         }
 
         if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -52,7 +57,7 @@ public class TransferService {
         BigDecimal senderCB = sender.getBalance();
         BigDecimal receiverCB = receiver.getBalance();
 
-        //I don't know if I did this right
+
         if(senderCB.compareTo(transferAmount) < 0 ){
             //insufficient funds message should be alerted
             throw new InvalidTransferException("Insufficient funds");
@@ -69,7 +74,7 @@ public class TransferService {
 //        walletRepository.save();
         walletRepository.save(sender);
         walletRepository.save(receiver);
-        Transaction trans = new Transaction( senderId,  receiverId,  transferAmount , TransactionStatus.SUCCESS);
+        Transaction trans = new Transaction( senderId,  receiverId,  transferAmount , TransactionStatus.SUCCESS , TransactionType.TRANSFER);
 
         return transactionRepository.save(trans);
     }

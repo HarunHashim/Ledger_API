@@ -14,10 +14,8 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long tid;
 
-    @NotNull
     private Long senderId;
 
-    @NotNull
     private Long receiverId;
 
     @Positive
@@ -29,6 +27,11 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionStatus Transaction_status;
 
+    @Enumerated(EnumType.STRING)
+    private  TransactionType transactionType;
+
+
+
     public TransactionStatus getTransaction_status() {
         return Transaction_status;
     }
@@ -37,13 +40,14 @@ public class Transaction {
         Transaction_status = transaction_status;
     }
 
-    public Transaction(Long senderId, Long receiverId, BigDecimal transferAmount,  TransactionStatus transaction_status) {
+    public Transaction(Long senderId, Long receiverId, BigDecimal transferAmount,  TransactionStatus transaction_status , TransactionType transactionType) {
 
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.transferAmount = transferAmount;
         this.transactionTime = LocalDateTime.now();
         this.Transaction_status = transaction_status;
+        this.transactionType = transactionType;
     }
 
     public Transaction() {
@@ -88,5 +92,13 @@ public class Transaction {
 
     public void setTransactionTime(LocalDateTime transactionTime) {
         this.transactionTime = transactionTime;
+    }
+
+    public TransactionType getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
     }
 }

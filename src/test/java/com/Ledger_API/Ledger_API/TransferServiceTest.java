@@ -1,11 +1,14 @@
 package com.Ledger_API.Ledger_API;
 
 import com.Ledger_API.Ledger_API.entity.Transaction;
+import com.Ledger_API.Ledger_API.entity.TransactionStatus;
+import com.Ledger_API.Ledger_API.entity.TransactionType;
 import com.Ledger_API.Ledger_API.entity.Wallet;
 import com.Ledger_API.Ledger_API.exceptions.InvalidTransferException;
 import com.Ledger_API.Ledger_API.repository.TransactionRepository;
 import com.Ledger_API.Ledger_API.repository.WalletRepository;
 import com.Ledger_API.Ledger_API.service.TransferService;
+import com.Ledger_API.Ledger_API.service.WalletService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,8 @@ import java.math.BigDecimal;
 public class TransferServiceTest {
     @Autowired
     private TransferService transferService;
+    @Autowired
+    private WalletService walletService;
     @Autowired
     private WalletRepository walletRepository;
     @Autowired
@@ -82,5 +87,48 @@ public class TransferServiceTest {
                         sender.getId(),
                         new BigDecimal("100")
                 ));
+    }
+
+    @Test
+    @DisplayName("Test 4: Deposit increases wallet balance and records transaction")
+    void depositIncreasesBalanceAndRecordsTransaction() {
+        Wallet wallet = walletRepository.save(new Wallet("harun", new BigDecimal("500")));
+
+        Wallet updatedWallet = walletService.deposit(
+                wallet.getId(),
+                new BigDecimal("100")
+        );
+
+        assertEquals(new BigDecimal("600"), updatedWallet.getBalance());
+        assertEquals(1, transactionRepository.findAll().size());
+
+        Transaction transaction = transactionRepository.findAll().get(0);
+        assertEquals(TransactionType.DEPOSIT, transaction.getTransactionType());
+        assertNull(transaction.getSenderId());
+        assertEquals(wallet.getId(), transaction.getReceiverId());
+    }
+
+    @Test
+    @DisplayName("Test 5: Withdrawal decreases wallet balance and records transaction")
+    void withdrawalDecreasesBalanceAndRecordsTransaction() {
+        Wallet wallet = walletRepository.save(
+                new Wallet("harun", new BigDecimal("500"))
+        );
+
+        Wallet updatedWallet = walletService.withdraw(
+                wallet.getId(),
+                new BigDecimal("100")
+        );
+
+        assertEquals(new BigDecimal("400"), updatedWallet.getBalance());
+        assertEquals(1, transactionRepository.findAll().size());
+
+        Transaction transaction = transactionRepository.findAll().get(0);
+
+        assertEquals(TransactionType.WITHDRAWAL, transaction.getTransactionType());
+        assertEquals(TransactionStatus.SUCCESS, transaction.getTransaction_status());
+        assertEquals(wallet.getId(), transaction.getSenderId());
+        assertNull(transaction.getReceiverId());
+        assertEquals(new BigDecimal("100"), transaction.getTransferAmount());
     }
 }

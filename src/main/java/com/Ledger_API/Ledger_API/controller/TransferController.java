@@ -1,7 +1,9 @@
 package com.Ledger_API.Ledger_API.controller;
 
+import com.Ledger_API.Ledger_API.dto.TransferRequest;
 import com.Ledger_API.Ledger_API.entity.Transaction;
 import com.Ledger_API.Ledger_API.service.TransferService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -18,12 +20,15 @@ public class TransferController {
     }
 
     //Used to perform transfer between a receiver and sender
+    //Use of DTO here proving very useful for accepting JSON body message .
     @PostMapping
-    public Transaction transfer(@RequestParam Long senderId,
-                                @RequestParam Long receiverId,
-                                @RequestParam BigDecimal transferAmount
-                                          ){
-        return transferService.transferMoney(senderId,receiverId,transferAmount);
+    public Transaction transfer(@Valid @RequestBody TransferRequest request
+                                ){
+        return transferService.transferMoney(
+                request.getSenderId(),
+                request.getReceiverId(),
+                request.getTransferAmount()
+        );
 
     }
 
