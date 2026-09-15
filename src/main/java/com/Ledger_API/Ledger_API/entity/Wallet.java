@@ -18,6 +18,11 @@ public class Wallet {
 
     private LocalDateTime createdAt;
 
+    //This helps with concurrency issues . In the even two processes want to happen at the same time , hibernate will not
+    //let them write on the same version hence blocking a race condition /conflicting writes in this case . It only allows processes to happen to unique versions
+    @Version
+    private Long version ;
+
 //    These here represent the properties of each wallet.
 
     public Wallet (){}

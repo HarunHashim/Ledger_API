@@ -7,13 +7,17 @@ import com.Ledger_API.Ledger_API.exceptions.InvalidTransferException;
 import com.Ledger_API.Ledger_API.exceptions.WalletNotFoundException;
 import com.Ledger_API.Ledger_API.repository.TransactionRepository;
 import com.Ledger_API.Ledger_API.repository.WalletRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.Ledger_API.Ledger_API.entity.Wallet;
-import com.Ledger_API.Ledger_API.service.WalletService;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 @Service
 //@Transactional
@@ -70,7 +74,7 @@ public class TransferService {
         //By this point new balances in the account should be updated
 
 
-        //Im not sure if i would have this to save the changes into the database or not , im assuming thats the main function of this line .
+        //I'm not sure if I would have this to save the changes into the database or not , im assuming that's the main function of this line .
 //        walletRepository.save();
         walletRepository.save(sender);
         walletRepository.save(receiver);
@@ -79,8 +83,108 @@ public class TransferService {
         return transactionRepository.save(trans);
     }
 
-    //Here I suppose will be where the transaction service will be initiated with the transaction notice inorder to make sure the process isn'r buggy halfway instead it goes on through until the end of hte operation .
-    public List<Transaction> getTransactionHistory(Long Id){
-        return transactionRepository.findBySenderIdOrReceiverId(Id, Id);
+    //Here I suppose will be where the transaction service will be initiated with the transaction notice inorder to make sure the process isn'r buggy halfway instead it goes on through until the end of the operation .
+    //Pagination will be implemented here
+    public Page<Transaction> getTransactionHistory(
+            Long Id,
+            TransactionType type,
+            TransactionStatus status,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            LocalDate dateFrom,
+            LocalDate dateTo,
+            Pageable pageable){
+
+        //So the service would no longer need to call this , instead it constructs a Specification<> which would contain all the
+//        WHERE conditions for Transaction and return the query . The returned queries would have the conditions met using WHERE , this is where
+//        the type , amount ; (etc) will be used as filters only letting through records that meet the condition set
+
+//        return transactionRepository.findBySenderIdOrReceiverId(Id, Id ,pageable);
+
+        Specification<Transaction> spec =
+                (root, query, criteriaBuilder) ->
+                        criteriaBuilder.or(
+                                criteriaBuilder.equal(root.get("senderId"), Id),
+                                criteriaBuilder.equal(root.get("receiverId"), Id)
+                        );
+
+        //Here the Type criteria is addressed ( DEPOSIT , WITHDRAWAL , TRANSFER )
+        if (type != null) {
+            spec = spec.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.equal(
+                                    root.get("transactionType"),
+                                    type
+                            )
+            );
+        }
+        // Here the Status criteria is addressed ( check if the status was a success or fail )
+        if (status != null) {
+            spec = spec.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.equal(
+                                    root.get("Transaction_status"),
+                                    status
+                            )
+            );
+        }
+
+//        Here the minAmount criteria is addressed ( Amount is greater than or equal to )
+        if (minAmount != null) {
+            spec = spec.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.greaterThanOrEqualTo(
+                                    root.get("transferAmount"),
+                                    minAmount
+                            )
+            );
+        }
+
+//      Here the maxAmount criteria is addressed ( Amount is less than or equal to )
+        if (maxAmount != null) {
+            spec = spec.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.lessThanOrEqualTo(
+                                    root.get("transferAmount"),
+                                    maxAmount
+                            )
+            );
+        }
+
+        if (dateFrom != null) {
+
+            // This is syntax to ideally convert from datetime object to date alone
+            LocalDateTime from = dateFrom.atStartOfDay();
+
+            spec = spec.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.greaterThanOrEqualTo(
+                                    root.get("transactionTime"),
+                                    from
+                            )
+            );
+        }
+
+
+        if (dateTo != null) {
+
+            //Here on top of converting we add one day to address the issue of including
+            // the day until since at startOfDAY would not include results of that day
+            LocalDateTime until = dateTo.plusDays(1).atStartOfDay();
+
+            spec = spec.and(
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.lessThan(
+                                    root.get("transactionTime"),
+                                    until
+                            )
+            );
+        }
+
+
+
+
+
+        return transactionRepository.findAll(spec, pageable);
     }
 }

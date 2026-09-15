@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import java.time.LocalDate;
 import java.math.BigDecimal;
 
 //This class is responsible for testing the transfer process between different services
@@ -35,7 +38,8 @@ public class TransferServiceTest {
 
     @Test
 //    Checks if transfer logic still works using methods built in
-//    TEST :1
+//    Ensure before you test you have switched into the test database and not your main database in  the config file .
+
     @DisplayName("Test 1 : Successful transfer updates between wallets")
     void successfulTransferUpdatesBothWalletBalances() {
         Wallet sender = walletRepository.save(new Wallet("harun", new BigDecimal("500")));
@@ -131,4 +135,178 @@ public class TransferServiceTest {
         assertNull(transaction.getReceiverId());
         assertEquals(new BigDecimal("100"), transaction.getTransferAmount());
     }
+
+    @Test
+    @DisplayName("Test 6: Transaction history filters by transaction type")
+    void transactionHistoryFiltersByType() {
+
+        Wallet wallet = walletRepository.save(
+                new Wallet("harun", new BigDecimal("500"))
+        );
+
+        walletService.deposit(wallet.getId(), new BigDecimal("100"));
+        walletService.withdraw(wallet.getId(), new BigDecimal("50"));
+
+        Page<Transaction> result =
+                transferService.getTransactionHistory(
+                        wallet.getId(),
+                        TransactionType.DEPOSIT,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        PageRequest.of(0, 10)
+                );
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(
+                TransactionType.DEPOSIT,
+                result.getContent().get(0).getTransactionType()
+        );
+    }
+
+    @Test
+    @DisplayName("Test 7: Transaction history filters by status")
+    void transactionHistoryFiltersByStatus() {
+
+        Wallet wallet = walletRepository.save(
+                new Wallet("harun", new BigDecimal("500"))
+        );
+
+        walletService.deposit(wallet.getId(), new BigDecimal("100"));
+        walletService.withdraw(wallet.getId(), new BigDecimal("50"));
+
+        Page<Transaction> result =
+                transferService.getTransactionHistory(
+                        wallet.getId(),
+                        null,
+                        TransactionStatus.SUCCESS,
+                        null,
+                        null,
+                        null,
+                        null,
+                        PageRequest.of(0, 10)
+                );
+
+        assertEquals(2, result.getTotalElements());
+
+        assertTrue(
+                result.getContent().stream()
+                        .allMatch(transaction ->
+                                transaction.getTransaction_status()
+                                        == TransactionStatus.SUCCESS)
+        );
+    }
+
+    @Test
+    @DisplayName("Test 8: Transaction history filters by amount range")
+    void transactionHistoryFiltersByAmountRange() {
+
+        Wallet wallet = walletRepository.save(
+                new Wallet("harun", new BigDecimal("1000"))
+        );
+
+        walletService.deposit(wallet.getId(), new BigDecimal("25"));
+        walletService.deposit(wallet.getId(), new BigDecimal("100"));
+        walletService.deposit(wallet.getId(), new BigDecimal("250"));
+
+        Page<Transaction> result =
+                transferService.getTransactionHistory(
+                        wallet.getId(),
+                        null,
+                        null,
+                        new BigDecimal("50"),
+                        new BigDecimal("200"),
+                        null,
+                        null,
+                        PageRequest.of(0, 10)
+                );
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(
+                0,
+                new BigDecimal("100").compareTo(
+                        result.getContent().get(0).getTransferAmount()
+                )
+        );
+    }
+
+    @Test
+    @DisplayName("Test 9: Transaction history filters by date range")
+    void transactionHistoryFiltersByDateRange() {
+
+        Wallet wallet = walletRepository.save(
+                new Wallet("harun", new BigDecimal("500"))
+        );
+
+        walletService.deposit(
+                wallet.getId(),
+                new BigDecimal("100")
+        );
+
+        LocalDate today = LocalDate.now();
+
+        Page<Transaction> result =
+                transferService.getTransactionHistory(
+                        wallet.getId(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        today,
+                        today,
+                        PageRequest.of(0, 10)
+                );
+
+        assertEquals(1, result.getTotalElements());
+
+        Transaction transaction = result.getContent().get(0);
+
+        assertEquals(
+                today,
+                transaction.getTransactionTime().toLocalDate()
+        );
+    }
+
+    @Test
+    @DisplayName("Test 10: Transaction history combines multiple filters")
+    void transactionHistoryCombinesMultipleFilters() {
+
+        Wallet wallet = walletRepository.save(
+                new Wallet("harun", new BigDecimal("1000"))
+        );
+
+        walletService.deposit(wallet.getId(), new BigDecimal("25"));
+        walletService.deposit(wallet.getId(), new BigDecimal("100"));
+        walletService.withdraw(wallet.getId(), new BigDecimal("100"));
+
+        LocalDate today = LocalDate.now();
+
+        Page<Transaction> result =
+                transferService.getTransactionHistory(
+                        wallet.getId(),
+                        TransactionType.DEPOSIT,
+                        TransactionStatus.SUCCESS,
+                        new BigDecimal("50"),
+                        new BigDecimal("150"),
+                        today,
+                        today,
+                        PageRequest.of(0, 10)
+                );
+
+        assertEquals(1, result.getTotalElements());
+
+        Transaction transaction = result.getContent().get(0);
+
+        assertEquals(TransactionType.DEPOSIT, transaction.getTransactionType());
+
+        assertEquals(
+                0,
+                new BigDecimal("100")
+                        .compareTo(transaction.getTransferAmount())
+        );
+    }
+
+
 }
