@@ -32,4 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 
-com/Ledger_API/Ledger_API/config/DataSeeder.java
+src/main/java/com/Ledger_API/Ledger_API/config/DataSeeder.java
