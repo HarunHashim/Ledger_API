@@ -1,0 +1,38 @@
+services:
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: Ledger_API
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: db
+    volumes:
+      - ledger_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Ledger_API"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/Ledger_API
+      DB_USERNAME: postgres
+      DB_PASSWORD: db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  ledger_postgres_data:

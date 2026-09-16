@@ -1,0 +1,5 @@
+target
+.git
+.idea
+frontend
+src/main/java/com/Ledger_API/Ledger_API/config/DataSeeder.java
