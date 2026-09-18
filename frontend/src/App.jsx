@@ -166,22 +166,22 @@ function App() {
               <div className="feature-card">
                 <div className="feature-icon">{'\u{1F4CA}'}</div>
                 <h3>Track Transactions</h3>
-                <p>Keep detailed records of all your financial transactions</p>
+                <p>Search and filter wallet activity.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">{'\u{1F512}'}</div>
-                <h3>Secure & Private</h3>
-                <p>Your financial data is encrypted and protected</p>
+                <h3>Transactional Transfers</h3>
+                <p>Move funds with consistent updates.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">{'\u{26A1}'}</div>
-                <h3>Lightning Fast</h3>
-                <p>Built for performance with instant updates</p>
+                <h3>Optimistic Concurrency</h3>
+                <p>Prevent conflicting balance updates.</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">{'\u{1F4F1}'}</div>
-                <h3>Always Accessible</h3>
-                <p>Access your ledger anytime, anywhere</p>
+                <h3>Reproducible Setup</h3>
+                <p>Seed repeatable data for testing.</p>
               </div>
             </div>
           </section>
