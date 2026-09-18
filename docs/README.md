@@ -8,12 +8,7 @@ creating and managing digital wallets, performing deposits and
 withdrawals, executing peer-to-peer transfers, and exploring transaction
 history.
 
-The project emphasizes backend architecture and transaction reliability
-rather than simple CRUD operations. It includes transactional money
-transfers, optimistic concurrency control, dynamic transaction
-filtering, pagination, database migrations, automated testing,
-continuous integration, and a containerized multi-service development
-environment.
+Centaur Ledger started as a project for learning Spring Boot and grew into a complete full-stack application. Beyond the core wallet functionality, I used the project to explore transactional operations, concurrency, dynamic database queries, testing, database migrations, CI, and containerizing a multi-service application with Docker.
 
 <img src="images/dashboard.png" alt="Centaur Ledger Dashboard" width="900">
 
